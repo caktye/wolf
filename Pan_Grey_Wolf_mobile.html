@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<style type="text/css">
+	*{ margin:0; padding:0; font-family:"微软雅黑";}
+	#outer{ background:url(img/game_bg.jpg) 0 0 no-repeat; height:480px; width:320px; position:absolute;}
+	#scoring{ position:absolute; font-weight:bold; font-size:16px; color:white; left:65px; top:13px;}
+	#countDown{ position:absolute; background:url(img/progress.png) 0 0 no-repeat; width:180px; height:16px; left: 63px;top: 66px;}
+	#wolfs img{ position:absolute;}
+	#menu{ position:absolute; width:320px; text-align:center; left:0; top:200px;}
+	#start,#handle,#gameOver{ line-height:50px; font-size:30px; font-weight:bold; color:#F60; text-shadow:0 0 5px #FFFF00; display:block; text-decoration:none;}
+	#gameOver{ position:absolute; width:320px; text-align:center; top:200px; left:0; display:none;}
+	</style>
+<script type="text/javascript">
+function rand(min,max){
+	return parseInt(Math.random()*(max-min))+min;
+}
+
+window.onload=function (){
+
+	var scoring=document.getElementById("scoring");
+	var countDown=document.getElementById("countDown");
+	var wolfs=document.getElementById("wolfs");
+	var menu=document.getElementById("menu");
+	var start=document.getElementById("start");
+	var gameOver=document.getElementById("gameOver");
+
+	var countDownWidth=countDown.offsetWidth;
+
+	// var countDownTimer
+	var createWolfTimer=null;
+	var countDownTimer=null;
+
+	//灰太狼随机出现的位置
+	var arrPos=[{l:"98px",t:"115px"},{l:"17px",t:"160px"},{l:"15px",t:"220px"},{l:"30px",t:"293px"},{l:"122px",t:"273px"},{l:"207px",t:"295px"},{l:"200px",t:"211px"},{l:"187px",t:"141px"},{l:"100px",t:"185px"}];
+
+	var scoringNumber=0;
+
+	function fnScoring(_src){
+
+		if (_src=="h"){
+			scoringNumber+=10;
+		}
+		else{
+			scoringNumber-=10;
+			if (scoringNumber<=0){
+				scoringNumber=0;
+			}
+		}
+		scoring.innerHTML=scoringNumber;
+	}
+
+	start.onclick=function (){
+
+		menu.style.display="none";
+
+		countDownTimer=setInterval(function (){
+
+			countDownWidth--;
+			if (countDownWidth<=0){
+
+				clearInterval(createWolfTimer);
+				clearInterval(countDownTimer);
+				setTimeout(function (){
+					gameOver.style.display="block";
+				},1500);
+			}
+			countDown.style.width=countDownWidth+"px";
+		},100);
+		//1.创建对象(狼)，同时开始倒计时
+		createWolfTimer=setInterval(function (){
+
+			var oImg=document.createElement("img");
+			oImg.index=0;
+			oImg._src=rand(0,100)>82?"x":"h";
+
+			oImg.dblClick=true;
+			oImg.removeBol=true;
+
+			var bol=true;
+			var aImg=wolfs.children;
+			var arr=[];
+			for (var i=0; i<aImg.length; i++){
+
+				arr.push(aImg[i].offsetLeft);
+			}
+			while(bol){
+
+				var iR=rand(0,arrPos.length);
+				bol=false;
+				for (var i=0; i<arr.length;i++){
+					if (arr[i]==parseInt(arrPos[iR].l)){
+						// alert(iR);
+						bol=true;
+					}
+				}
+			}
+
+			oImg.style.left=arrPos[iR].l;
+			oImg.style.top=arrPos[iR].t;
+
+			// oImg.src="img/"+oImg._src+oImg.index+".png";
+
+			oImg.clearSlefTimer=setTimeout(function (){
+
+				if (oImg.removeBol){
+					wolfs.removeChild(oImg);
+					oImg.removeBol=false;
+				}
+				
+			},1200);
+			oImg.timer=setInterval(function (){
+
+				oImg.index++;
+				if (oImg.index>=5){
+
+					//坑
+					oImg.delTimer=setTimeout(function (){
+						down();
+					},500);
+					clearInterval(oImg.timer);
+				}
+				oImg.src="img/"+oImg._src+oImg.index+".png";
+			},50);
+
+			function fnClick(){
+				if (oImg.dblClick){
+					fnScoring(oImg._src);
+					oImg.dblClick=false;
+					clearTimeout(oImg.delTimer);
+					clearInterval(oImg.downTimer);
+					oImg.index=5;
+					oImg.removeTimer=setInterval(function (){
+
+						oImg.index++;
+						if (oImg.index>=9){
+
+							if (oImg.removeBol){
+								wolfs.removeChild(oImg);
+								oImg.removeBol=false;
+							}
+							clearInterval(oImg.removeTimer);
+						}
+						oImg.src="img/"+oImg._src+oImg.index+".png";
+					},100);
+				}
+			}
+
+			oImg.addEventListener("touchstart", fnClick, false);
+
+			function down(){
+
+				oImg.downTimer=setInterval(function (){
+
+					oImg.index--;
+					if (oImg.index<=0){
+						if (oImg.removeBol){
+							wolfs.removeChild(oImg);
+							oImg.removeBol=false;
+						}
+						clearInterval(oImg.downTimer);
+					}
+					oImg.src="img/"+oImg._src+oImg.index+".png";
+				},50);
+			}
+
+
+			wolfs.appendChild(oImg);
+
+
+
+		},500);
+	}
+}
+</script>
+</head>
+<body>
+<div id="outer">
+	<div id="scoring">0</div><!--这是分数-->
+    <div id="countDown"></div><!--倒计时-->
+    <div id="wolfs">
+    	<!-- <img src="h0.png"/> -->
+    </div><!--灰太狼们-->
+    <div id="menu">
+        <a href="#" id="start">开始</a>
+        <a href="#" id="handle">游戏操作说明</a>
+    </div>
+    <div id="gameOver">game over!</div>
+</div>
+</body>
+</html>
